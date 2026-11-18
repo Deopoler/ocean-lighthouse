@@ -19,6 +19,25 @@ for name in ORDER:
     exec(compile(open(p, encoding="utf-8").read(), p, "exec"), {"__name__": "__main__", "__file__": p})
     print("assemble: ran %s in %.1fs" % (name, time.time() - t))
 
+# Intel Arc oneAPI fails here (Embree GPU BVH "Invalid operation"); render on CPU.
+bpy.context.scene.cycles.device = 'CPU'
+if os.environ.get("OL_ENGINE", "").upper() == "EEVEE":
+    sc = bpy.context.scene
+    sc.render.engine = 'BLENDER_EEVEE'
+    e = sc.eevee
+    for attr, val in (("use_raytracing", True), ("taa_render_samples", 64), ("use_shadows", True),
+                      ("shadow_ray_count", 2), ("shadow_step_count", 8), ("use_fast_gi", False),
+                      ("ray_tracing_method", 'SCREEN'), ("use_volumetric_shadows", True)):
+        try:
+            setattr(e, attr, val)
+        except Exception as ex:
+            print("assemble: eevee skip", attr, ex)
+    try:
+        e.ray_tracing_options.resolution_scale = '1'
+        e.ray_tracing_options.use_denoise = True
+    except Exception as ex:
+        print("assemble: eevee rt opts", ex)
+    print("assemble: engine EEVEE")
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(ROOT, "scene.blend"))
 print("assemble: saved scene.blend")
 
