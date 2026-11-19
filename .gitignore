@@ -1,3 +1,4 @@
 .orchestra/
-render/
+render/*
+!render/ocean_lighthouse.mp4
 *.blend1

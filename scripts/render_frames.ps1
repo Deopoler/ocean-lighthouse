@@ -1,7 +1,9 @@
 param(
     [string]$Blend = (Join-Path (Split-Path -Parent $PSScriptRoot) "scene.blend"),
     [int]$Start = 1,
-    [int]$End = 240
+    [int]$End = 240,
+    # Render on the Intel Arc GPU (oneAPI) and skip frames that already exist, frees the CPU
+    [switch]$Gpu
 )
 
 $ErrorActionPreference = "Stop"
@@ -28,7 +30,13 @@ New-Item -ItemType Directory -Force -Path $renderDir | Out-Null
 Write-Host "Rendering frames $Start-$End from $Blend"
 Write-Host "Logging to $logPath"
 
-& $blenderExe -b $Blend -s $Start -e $End -a 2>&1 | Tee-Object -FilePath $logPath
+$blenderArgs = @("-b", $Blend)
+if ($Gpu) {
+    # -t 2 keeps most CPU threads free; gpu_setup.py turns off oneAPI hardware RT (Embree GPU fails on Arc)
+    $blenderArgs += @("-t", "2", "--python", (Join-Path $PSScriptRoot "gpu_setup.py"))
+}
+$blenderArgs += @("-s", $Start, "-e", $End, "-a")
+& $blenderExe @blenderArgs 2>&1 | Tee-Object -FilePath $logPath
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Blender exited with code $LASTEXITCODE. See $logPath for details."
     exit $LASTEXITCODE
@@ -54,6 +62,8 @@ if ($null -eq $ffmpegCmd) {
     exit 0
 }
 
+# Encode every frame on disk (not just this run's range), so resumed renders produce the full video
+$Start = [int]($frameFiles[0].BaseName -replace '^frame_', '')
 $framePattern = Join-Path $framesDir "frame_%04d.png"
 Write-Host "Encoding $mp4Path from $framesDir ($($frameFiles.Count) frames)..."
 & $ffmpegCmd.Source -y -framerate 24 -start_number $Start -i $framePattern -c:v libx264 -crf 16 -pix_fmt yuv420p $mp4Path
