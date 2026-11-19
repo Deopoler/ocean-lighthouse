@@ -2,7 +2,9 @@
 
 A 10-second (240 frames, 24 fps, 1920x1080) Cycles animation of a lighthouse on a rocky islet at golden hour, built entirely from Python scripts: procedural ocean, sea stacks, lighthouse with a rotating beam, and a flock of animated gulls.
 
-Result: [`render/ocean_lighthouse.mp4`](render/ocean_lighthouse.mp4)
+[![Ocean Lighthouse animation preview](docs/preview.gif)](render/ocean_lighthouse.mp4)
+
+Preview above is a reduced GIF (480px, 10 fps). Full-quality video: [`render/ocean_lighthouse.mp4`](render/ocean_lighthouse.mp4) (1920x1080, 24 fps)
 
 ## Scripts
 
