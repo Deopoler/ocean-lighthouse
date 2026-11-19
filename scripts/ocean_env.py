@@ -32,7 +32,7 @@ def _water_material():
     L.new(sep.outputs['Z'], mr.inputs['Value'])
     mix = N.new('ShaderNodeMix'); mix.data_type = 'RGBA'
     mix.inputs['A'].default_value = (0.004, 0.018, 0.025, 1)
-    mix.inputs['B'].default_value = (0.02, 0.11, 0.10, 1)
+    mix.inputs['B'].default_value = (0.012, 0.06, 0.075, 1)
     L.new(mr.outputs[0], mix.inputs['Factor'])
     L.new(mix.outputs['Result'], water.inputs['Base Color'])
     attr = N.new('ShaderNodeAttribute'); attr.attribute_name = 'foam'
@@ -139,12 +139,13 @@ def build():
         except TypeError:
             pass
     sky.sun_disc = True; sky.sun_size = math.radians(0.6); sky.sun_intensity = 1.0
-    sky.sun_elevation = math.radians(3.0); sky.sun_rotation = math.radians(0)
+    sky.sun_elevation = math.radians(5.0); sky.sun_rotation = math.radians(-42)
     sky.altitude = 50; sky.air_density = 1.2; sky.aerosol_density = 2.5; sky.ozone_density = 1.0
-    bg = nt.nodes.new('ShaderNodeBackground'); bg.inputs['Strength'].default_value = 0.22
+    bg = nt.nodes.new('ShaderNodeBackground'); bg.inputs['Strength'].default_value = 0.38
     out = nt.nodes.new('ShaderNodeOutputWorld')
     nt.links.new(sky.outputs['Color'], bg.inputs['Color']); nt.links.new(bg.outputs[0], out.inputs['Surface'])
     sc.frame_start, sc.frame_end = 1, 240
+    sc.view_settings.exposure = 0.25
     sc.render.fps = 24
     print("ocean_env: built")
 
